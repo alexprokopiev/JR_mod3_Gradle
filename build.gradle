@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version'0.0.8'
+}
+
+group 'jru.module3'
+version '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
+}
+
+javafx {
+    version = "18.0.1"
+    modules = ['javafx.controls']
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.openjfx:javafx-controls:18.0.1'
+    implementation 'com.javarush:desktop-game-engine:1.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testCompileOnly 'org.projectlombok:lombok:1.18.32'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+}
+
+test {
+    useJUnitPlatform()
+    exclude '**/StrangeTest.class'
+}
+
+configurations {
+    externalLib.extendsFrom(implementation)
+}
+
+task copyAllDependencies(type: Copy) {
+    from configurations.compileClasspath
+    into "build/dependency"
+}
+build.dependsOn(copyAllDependencies)
+
+jar {
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes "Class-Path": "./"
+        attributes "Main-Class": "org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"
+        attributes "Rsrc-Main-Class": "com.javarush.games.racer.RacerGame"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
